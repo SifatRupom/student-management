@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Scholar | Student Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+
+<body>
+
+    <!-- Background Elements -->
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="glass-overlay"></div>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- 🔐 Authentication Overlay -->
+    <div id="auth-overlay" class="auth-overlay">
+        <div class="auth-card glass-panel">
+            <h2 id="auth-title">Sign In</h2>
+            <p id="auth-desc">Welcome back! Please enter your details.</p>
+
+            <form id="auth-form">
+                <div class="input-group">
+                    <label>Username</label>
+                    <input type="text" id="auth-username" required placeholder="Enter username">
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="auth-password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn btn-glow" style="width: 100%;" id="auth-submit-btn">Login to
+                    System</button>
+            </form>
+
+            <div class="auth-toggle">
+                <span id="toggle-auth">Don't have an account? Register</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container hidden" id="main-app">
+
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar glass-panel">
+            <div class="logo">
+                <i class='bx bx-cube-alt'></i>
+                <div class="logo-text">
+                    <span>Nexus</span>
+                    <small class="creator-tag">Created by Sifat Rupom</small>
+                </div>
+            </div>
+
+            <ul class="nav-links">
+                <li class="active" data-target="dashboard"><i class='bx bx-grid-alt'></i> Dashboard</li>
+                <li data-target="add-student"><i class='bx bx-user-plus'></i> Add Student</li>
+                <li data-target="student-list"><i class='bx bx-group'></i> All Students</li>
+                <li data-target="search-student"><i class='bx bx-search-alt'></i> Search ID</li>
+                <li data-target="payments"><i class='bx bx-wallet'></i> Payments</li>
+                <li data-target="due-payments"><i class='bx bx-error-circle'></i> Due Payments</li>
+                <li data-target="attendance"><i class='bx bx-calendar-check'></i> Attendance</li>
+                <li data-target="old-students"><i class='bx bx-archive'></i> Alumni List</li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="profile-img-container">
+                        <img id="profile-img" src="https://ui-avatars.com/api/?name=Admin&background=random"
+                            alt="Admin">
+                        <div class="img-overlay"><i class='bx bx-camera'></i></div>
+                    </div>
+                    <input type="file" id="profile-upload" hidden accept="image/*">
+                    <div>
+                        <h4 id="display-username">System Admin</h4>
+                        <p>Authorized</p>
+                    </div>
+                </div>
+                <button class="btn btn-small logout-btn" id="btn-logout"><i class='bx bx-log-out'></i> Logout</button>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+
+            <header class="top-header glass-panel">
+                <div class="header-left">
+                    <button id="btn-menu-toggle" class="icon-btn menu-btn"><i class='bx bx-menu'></i></button>
+                    <button id="btn-back" class="btn btn-small btn-outline hidden"><i class='bx bx-left-arrow-alt'></i>
+                        Back</button>
+                    <h1 id="page-title">Dashboard</h1>
+                </div>
+                <div class="header-actions">
+                    <button id="btn-theme-toggle" class="icon-btn" title="Toggle Theme"><i
+                            class='bx bx-moon'></i></button>
+                    <div class="date-display" id="current-date">--</div>
+                    <button id="bell-btn" class="icon-btn"><i class='bx bx-bell'></i></button>
+                    <button id="settings-btn" class="icon-btn"><i class='bx bx-cog'></i></button>
+                </div>
+            </header>
+
+            <!-- SCROLLABLE CONTENT -->
+            <div class="page-content">
+
+                <!-- 1. DASHBOARD -->
+                <section id="dashboard" class="page-section active">
+                    <div class="stats-grid">
+                        <div class="stat-card glass-panel highlight-card">
+                            <i class='bx bx-user'></i>
+                            <div class="stat-info">
+                                <h3>Total Students</h3>
+                                <h2 id="stat-total-students">0</h2>
+                            </div>
+                        </div>
+                        <div class="stat-card glass-panel">
+                            <i class='bx bx-archive'></i>
+                            <div class="stat-info">
+                                <h3>Alumni</h3>
+                                <h2 id="stat-old-students">0</h2>
+                            </div>
+                        </div>
+                        <div class="stat-card glass-panel highlight-card">
+                            <i class='bx bx-wallet-alt'></i>
+                            <div class="stat-info">
+                                <h3>Total Payments</h3>
+                                <h2 id="stat-total-payments">0</h2>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="recent-section glass-panel">
+                        <div class="section-header">
+                            <h2>Recent Registrations</h2>
+                            <div class="header-btns">
+                                <button class="btn btn-outline btn-small" id="btn-export-recent"><i
+                                        class='bx bx-download'></i> Export</button>
+                                <button class="btn btn-outline btn-small" onclick="switchTab('student-list')">View
+                                    All</button>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="styled-table" id="recent-students-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Batch</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. ADD STUDENT -->
+                <section id="add-student" class="page-section">
+                    <div class="form-container glass-panel">
+                        <h2>New Student Registration</h2>
+                        <form id="add-student-form">
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label>Student ID (e.g. STU1001)</label>
+                                    <input type="text" id="stu-id" required placeholder="Enter unique ID">
+                                </div>
+                                <div class="input-group">
+                                    <label>Student Photo (Optional)</label>
+                                    <input type="file" id="stu-photo-upload" accept="image/*" class="date-input">
+                                </div>
+                            </div>
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label>Full Name</label>
+                                    <input type="text" id="stu-name" required placeholder="Student Name">
+                                </div>
+                                <div class="input-group">
+                                    <label>Guardian Name</label>
+                                    <input type="text" id="stu-guardian" placeholder="Parents/Guardian">
+                                </div>
+                            </div>
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label>Phone Number</label>
+                                    <input type="tel" id="stu-phone" placeholder="+8801...">
+                                </div>
+                                <div class="input-group">
+                                    <label>Batch / Class</label>
+                                    <input type="text" id="stu-batch" placeholder="e.g. Batch 2026">
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label>Address</label>
+                                <textarea id="stu-address" rows="3" placeholder="Full residential address"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-glow">Register Student</button>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- 3. STUDENT LIST -->
+                <section id="student-list" class="page-section">
+                    <div class="list-container glass-panel">
+                        <div class="section-header">
+                            <h2>Active Students</h2>
+                            <div class="header-btns">
+                                <button class="btn btn-outline btn-small" id="btn-export-list"><i
+                                        class='bx bx-download'></i> Export CSV</button>
+                                <div class="search-box">
+                                    <i class='bx bx-search'></i>
+                                    <input type="text" id="filter-students" placeholder="Filter by Name/ID...">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="styled-table" id="all-students-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Phone</th>
+                                        <th>Batch</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. SEARCH & DETAILS -->
+                <section id="search-student" class="page-section">
+                    <div class="search-hero glass-panel">
+                        <h2>Find Student Record</h2>
+                        <div class="big-search-box">
+                            <input type="text" id="search-input-id" placeholder="Enter Student ID (e.g. STU1001)...">
+                            <button class="btn btn-glow" id="btn-search-id"><i class='bx bx-search'></i> Search</button>
+                        </div>
+                    </div>
+
+                    <div id="search-result-container" class="hidden">
+                        <div class="profile-card glass-panel">
+                            <div class="profile-header">
+                                <div class="avatar-large profile-img-container" id="det-avatar-container"
+                                    style="cursor: pointer;">
+                                    <img id="det-profile-img"
+                                        src="https://ui-avatars.com/api/?name=Student&background=random" alt="Student"
+                                        style="width:100%; height:100%; object-fit:cover; border-radius:50%;">
+                                    <div class="img-overlay"><i class='bx bx-camera'></i></div>
+                                </div>
+                                <input type="file" id="det-photo-upload" hidden accept="image/*">
+                                <div class="profile-title">
+                                    <h2 id="det-name">Name</h2>
+                                    <p class="badge" id="det-id">ID</p>
+                                </div>
+                                <div class="profile-actions">
+                                    <button class="btn btn-glow btn-small" id="btn-edit-student"><i
+                                            class='bx bx-edit'></i> Edit</button>
+                                    <button class="btn btn-outline" id="btn-mark-old">Mark as Alumni</button>
+                                    <button class="btn btn-danger" id="btn-delete"><i class='bx bx-trash'></i>
+                                        Delete</button>
+                                </div>
+                            </div>
+
+                            <div class="profile-details" id="det-view-mode">
+                                <div class="detail-item">
+                                    <span>Guardian</span>
+                                    <strong id="det-guardian">-</strong>
+                                </div>
+                                <div class="detail-item">
+                                    <span>Phone</span>
+                                    <strong id="det-phone">-</strong>
+                                </div>
+                                <div class="detail-item">
+                                    <span>Batch</span>
+                                    <strong id="det-batch">-</strong>
+                                </div>
+                                <div class="detail-item">
+                                    <span>Address</span>
+                                    <strong id="det-address">-</strong>
+                                </div>
+                            </div>
+
+                            <div class="profile-details hidden" id="det-edit-mode" style="grid-template-columns: 1fr;">
+                                <div class="input-row">
+                                    <div class="input-group">
+                                        <label>Full Name</label>
+                                        <input type="text" id="edit-name">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Guardian</label>
+                                        <input type="text" id="edit-guardian">
+                                    </div>
+                                </div>
+                                <div class="input-row">
+                                    <div class="input-group">
+                                        <label>Phone</label>
+                                        <input type="tel" id="edit-phone">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Batch</label>
+                                        <input type="text" id="edit-batch">
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label>Address</label>
+                                    <textarea id="edit-address" rows="2"></textarea>
+                                </div>
+                                <div style="display:flex; gap:10px; margin-top:10px;">
+                                    <button class="btn btn-glow btn-small" id="btn-save-edit">Save Changes</button>
+                                    <button class="btn btn-outline btn-small" id="btn-cancel-edit">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mini Payment Section in Student Detail -->
+                        <div class="payment-history-card glass-panel">
+                            <div class="section-header">
+                                <h3>Payment History</h3>
+                                <button class="btn btn-small btn-glow"
+                                    onclick="switchTab('payments'); document.getElementById('pay-stu-id').value = document.getElementById('det-id').innerText;">+
+                                    Add Payment</button>
+                            </div>
+                            <div class="table-container">
+                                <table class="styled-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Month</th>
+                                            <th>Amount</th>
+                                            <th>Note</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="det-payments-body">
+                                        <!-- Populated -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. PAYMENTS -->
+                <section id="payments" class="page-section">
+                    <div class="payments-wrapper">
+                        <!-- Add Payment Form -->
+                        <div class="form-container glass-panel">
+                            <h2>Record Payment</h2>
+                            <form id="add-payment-form">
+                                <div class="input-group">
+                                    <label>Student ID</label>
+                                    <input type="text" id="pay-stu-id" required placeholder="Student ID">
+                                </div>
+                                <div class="input-row">
+                                    <div class="input-group">
+                                        <label>Amount (৳)</label>
+                                        <input type="number" id="pay-amount" required placeholder="0.00">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Payment Date</label>
+                                        <input type="date" id="pay-date" required>
+                                    </div>
+                                </div>
+                                <div class="input-row">
+                                    <div class="input-group">
+                                        <label>Fee Month</label>
+                                        <select id="pay-month" required>
+                                            <option value="January">January</option>
+                                            <option value="February">February</option>
+                                            <option value="March">March</option>
+                                            <option value="April">April</option>
+                                            <option value="May">May</option>
+                                            <option value="June">June</option>
+                                            <option value="July">July</option>
+                                            <option value="August">August</option>
+                                            <option value="September">September</option>
+                                            <option value="October">October</option>
+                                            <option value="November">November</option>
+                                            <option value="December">December</option>
+                                        </select>
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Year</label>
+                                        <input type="number" id="pay-year" required placeholder="YYYY">
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label>Remarks</label>
+                                    <input type="text" id="pay-note" placeholder="Optional notes">
+                                </div>
+                                <button type="submit" class="btn btn-glow" style="width: 100%;">Save Payment</button>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5.5 ATTENDANCE -->
+                <section id="attendance" class="page-section">
+                    <div class="list-container glass-panel">
+                        <div class="tabs-sub glass-panel"
+                            style="margin-bottom: 20px; display: flex; gap: 10px; padding: 10px;">
+                            <button class="btn btn-small btn-auth-toggle active" id="tab-attendance-daily">Daily
+                                Attendance</button>
+                            <button class="btn btn-small btn-auth-toggle" id="tab-attendance-history">Attendance
+                                History</button>
+                        </div>
+
+                        <div id="view-attendance-daily">
+                            <div class="section-header">
+                                <h2>Daily Attendance</h2>
+                                <div class="attendance-actions">
+                                    <input type="date" id="attendance-date" class="date-input">
+                                    <button class="btn btn-glow" id="btn-save-attendance">Save Attendance</button>
+                                </div>
+                            </div>
+                            <div class="table-container">
+                                <table class="styled-table" id="attendance-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Student</th>
+                                            <th>Status</th>
+                                            <th>Note</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Populated by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div id="view-attendance-history" class="hidden">
+                            <div class="section-header">
+                                <h2>Attendance History</h2>
+                                <div class="attendance-actions">
+                                    <input type="text" id="history-student-id" placeholder="Student ID (Optional)"
+                                        class="date-input" style="width: 180px;">
+                                    <input type="date" id="history-start" class="date-input">
+                                    <input type="date" id="history-end" class="date-input">
+                                    <button class="btn btn-glow" id="btn-fetch-history">Search</button>
+                                </div>
+                            </div>
+                            <div class="table-container">
+                                <table class="styled-table" id="history-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Student</th>
+                                            <th>Status</th>
+                                            <th>Note</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Populated by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5.5 DUE PAYMENTS -->
+                <section id="due-payments" class="page-section">
+                    <div class="list-container glass-panel">
+                        <div class="section-header">
+                            <div>
+                                <h2>Due Payments</h2>
+                                <p id="due-month-title" style="color:var(--text-muted); font-size: 14px;"></p>
+                            </div>
+                            <button class="btn btn-outline btn-small" id="btn-refresh-due"
+                                onclick="showToast('Refreshing Due Payments...'); loadDuePayments()"><i
+                                    class='bx bx-refresh'></i>
+                                Refresh</button>
+                        </div>
+                        <div class="table-container">
+                            <table class="styled-table" id="due-students-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Phone</th>
+                                        <th>Batch</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Populated -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 6. OLD STUDENTS (ALUMNI) -->
+                <section id="old-students" class="page-section">
+                    <div class="list-container glass-panel">
+                        <div class="section-header">
+                            <h2>Alumni / Old Students</h2>
+                            <button class="btn btn-outline btn-small" id="btn-export-alumni"><i
+                                    class='bx bx-download'></i> Export CSV</button>
+                        </div>
+                        <div class="table-container">
+                            <table class="styled-table" id="old-students-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Batch</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Populated -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="toast hidden">
+        <i class='bx bx-check-circle'></i>
+        <span id="toast-msg">Success!</span>
+    </div>
+
+    <script src="app.js?v=2"></script>
+</body>
+
+</html>
