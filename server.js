@@ -2,8 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const bcrypt = require('bcryptjs');
-const db = require('./database');
-
+const pool = require('./database');
 const app = express();
 const PORT = 3000;
 
@@ -88,9 +87,13 @@ app.put('/api/user/profile-pic', (req, res) => {
 // Get all students (filter by status)
 app.get('/api/students', (req, res) => {
     const status = req.query.status || 'active';
-    db.all(`SELECT * FROM students WHERE status = ? ORDER BY created_at DESC`, [status], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ students: rows });
+    pool.query('SELECT * FROM students WHERE batch = $1 ORDER BY created_at DESC', [status], (err, result) => {
+    if (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Database Error' });
+    }
+    // ডেটা এখন result.rows এর ভেতর থাকে
+    res.json({ students: result.rows });
     });
 });
 
