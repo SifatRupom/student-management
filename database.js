@@ -8,6 +8,7 @@ const pool = new Pool({
 });
 
 const createTables = async () => {
+  // আপনার ফর্মের সব তথ্যের জন্য টেবিল আপডেট করা হয়েছে
   const query = `
     CREATE TABLE IF NOT EXISTS users (
       id SERIAL PRIMARY KEY,
@@ -19,18 +20,22 @@ const createTables = async () => {
 
     CREATE TABLE IF NOT EXISTS students (
       id SERIAL PRIMARY KEY,
+      student_id TEXT UNIQUE,
       name TEXT NOT NULL,
-      batch TEXT,
+      guardian_name TEXT,
       phone TEXT,
+      batch TEXT,
+      address TEXT,
       email TEXT,
+      photo_url TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `;
   try {
     await pool.query(query);
-    console.log('PostgreSQL Tables Ready!');
+    console.log('PostgreSQL Tables Updated with all fields!');
   } catch (err) {
-    console.error('Error creating tables:', err);
+    console.error('Error updating tables:', err);
   }
 };
 
