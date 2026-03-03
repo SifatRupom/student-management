@@ -1,92 +1,46 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
+const { Pool } = require('pg');
 
-const dbPath = path.resolve(__dirname, 'students.db');
-const db = new sqlite3.Database(dbPath, (err) => {
-    if (err) {
-        console.error('Error connecting to the database:', err.message);
-    } else {
-        console.log('Connected to the SQLite database.');
-        createTables();
-    }
+const pool = new Pool({
+  connectionString: 'postgresql://student_db_ye9q_user:cC4dKnxghIMliQd9FLWP3D7bKHjl7wR2@dpg-d6jg14vgi27c73d4dci0-a.oregon-postgres.render.com/student_db_ye9q', 
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
-function createTables() {
-    db.run(`
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL,
-            profile_pic TEXT, 
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    `, (err) => {
-        if (!err) {
-            // Try to add the column if it doesn't exist (for existing DBs)
-            db.run(`ALTER TABLE users ADD COLUMN profile_pic TEXT`, (alterErr) => {
-                // Ignore error if column already exists
-            });
-        }
-    });
+const createTables = async () => {
+  const query = `
+    CREATE TABLE IF NOT EXISTS users (
+      id SERIAL PRIMARY KEY,
+      username TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      profile_pic TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
 
-    db.run(`
-        CREATE TABLE IF NOT EXISTS students (
-            id TEXT PRIMARY KEY,
-            name TEXT NOT NULL,
-            guardian_name TEXT,
-            phone TEXT,
-            address TEXT,
-            batch TEXT,
-            status TEXT DEFAULT 'active',
-            profile_pic TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    `, (err) => {
-        if (!err) {
-            db.run(`ALTER TABLE students ADD COLUMN profile_pic TEXT`, (alterErr) => {
-                // Ignore error if column already exists
-            });
-        }
-    });
+    CREATE TABLE IF NOT EXISTS students (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      batch TEXT,
+      phone TEXT,
+      email TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+  try {
+    await pool.query(query);
+    console.log('PostgreSQL Tables Ready!');
+  } catch (err) {
+    console.error('Error creating tables:', err);
+  }
+};
 
-    db.run(`
-        CREATE TABLE IF NOT EXISTS payments (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            student_id TEXT NOT NULL,
-            amount REAL NOT NULL,
-            date TEXT NOT NULL,
-            month TEXT NOT NULL,
-            year TEXT NOT NULL,
-            note TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(student_id) REFERENCES students(id) ON DELETE CASCADE
-        )
-    `);
+pool.connect((err, client, release) => {
+  if (err) {
+    return console.error('Connection Error:', err.stack);
+  }
+  createTables();
+  release();
+  console.log('Connected to PostgreSQL successfully!');
+});
 
-    db.run(`
-        CREATE TABLE IF NOT EXISTS attendance (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            student_id TEXT NOT NULL,
-            date TEXT NOT NULL,
-            status TEXT NOT NULL, -- 'present', 'absent'
-            note TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(student_id) REFERENCES students(id) ON DELETE CASCADE,
-            UNIQUE(student_id, date)
-        )
-    `);
-
-    db.run(`
-        CREATE TABLE IF NOT EXISTS due_status (
-            student_id TEXT NOT NULL,
-            month TEXT NOT NULL,
-            year TEXT NOT NULL,
-            status TEXT NOT NULL, -- 'clear', 'due'
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY(student_id, month, year),
-            FOREIGN KEY(student_id) REFERENCES students(id) ON DELETE CASCADE
-        )
-    `);
-}
-
-module.exports = db;
+module.exports = pool;
